@@ -30,16 +30,20 @@ right_landmark_location = None
 
 name_talking_to = None
 
+names_of_employees = ["Silas"]
+
 guest_response_to_visitor_passes = ["yes", "no"]
 guest_response_to_questions = ["yes", "no"]
-guest_possible_questions = ["bathroom","entrance", "time", "Silas", "package", "lunch", "wifi password"]
+guest_possible_questions = ["bathroom","entrance", "time", "Silas", "package", "lunch", "wifi password", "visitor passes", "phone"]
 responses_to_guests = {"bathroom": "the bathroom is around the corner",
                        "entrance": "the entrance is behind you",
                        "time": "the time is" + str(datetime.now().time()),
                        "Silas": "Silas's office is around the corner",
                        "package": "I can sign for your package here",
                        "lunch": "lunch will be provided at 12:30",
-                       "wifi password": "the wifi password is I L O V E F R I E N D L Y" 
+                       "wifi password": "the wifi password is I L O V E F R I E N D L Y", 
+                       "visitor passes" : "the visitor passes are right there",
+                       "phone": "the phone is over there"
 }
 
 employee_responses_to_question = ["yes" "no"]
@@ -113,7 +117,8 @@ def wait_for_person_or_phone():
     look_for_faces_code()
     global next_state
     if look_for_face_instance.face_detected:
-        next_state = 'conversation'
+        # next_state = 'conversation'
+        next_state = "conversation"
     else:
         next_state = 'phone'
 
@@ -124,26 +129,25 @@ def conversation_handler():
     
     if name_talking_to == "Visitor":
         guest_conversation()
+    elif name_talking_to:
+        employee_conversation()
+    global next_state
+    next_state = "idle"
 
-    if None:
-        next_state = "idle"
-    if None:
-        next_state  = "phone"
-
+def employee_conversation():
+    robot_speak_instance.say_words("I know you are an employee this is where I would talk to you")
 
 def guest_conversation():
-    robot_speak_instance.say_words("Would you like something")
-
+    robot_speak_instance.say_words("Hello, what is the reason for your visit?")
+    robot_speak_instance.say_words("Would you like something?")
     listen_for_words(guest_response_to_questions)
-
-    robot_speak_instance.say_words("What would you like")
-
+    robot_speak_instance.say_words("What would you like?")
     listen_for_words(guest_possible_questions)
-
     robot_speak_instance.say_words(responses_to_guests[words1_recognition_instance.matched_word])
-
-    # robot_speak_instance.say_words(words1_recognition_instance.matched_word)
-
+    if words1_recognition_instance.matched_word == "phone":
+        point_to_phone()
+    elif words1_recognition_instance.matched_word == "visitor passes":
+        point_to_passes()
 
 def listen_for_words(words_to_listen_for):
     global words1_recognition_instance 
@@ -151,7 +155,6 @@ def listen_for_words(words_to_listen_for):
         pass
     else:
         words1_recognition_instance = WordRecognizer("words1_recognition_instance", nao_ip, nao_port)
-
     words1_recognition_instance.start_listening_for_words(words_to_listen_for)
     try:
         while True:
@@ -164,7 +167,6 @@ def listen_for_words(words_to_listen_for):
         MyBroker.shutdown()
         sys.exit(0)
 
-
 def point_to_phone():
     point_to_location_code(left_landmark_location, "LArm")
     time.sleep(1)
@@ -175,13 +177,14 @@ def point_to_passes():
     time.sleep(1)
     reset_movement_instance.stand_up()
 
-
 def set_up_experiment():
     robot_stand_up()
     time.sleep(1)
     set_up_robot_speaking()
-    # learn_face_code()
-    # scan_environment_functionality()
+    learn_face_code()
+    scan_environment_functionality()
+    while (left_landmark_location == None or right_landmark_location == None):
+        scan_environment_functionality()
     global next_state
     next_state = "idle"
 
@@ -195,21 +198,16 @@ def set_up_robot_speaking():
     global robot_speak_instance
     robot_speak_instance = RobotSpeak("robot_speak_instance", nao_ip, nao_port)
 
-
 def learn_face_code():
     global face_detection_instance
+    global names_of_employees
     face_detection_instance = FaceRecognition("face_detection_instance", nao_ip, nao_port)
     face_detection_instance.clear_face_database()
-
-    names_of_employees = ["Silas"]
-    done_vocab = ["Done and Done"]
-
+    done_vocab = ["Done"]
     global done_recognition_instance
     done_recognition_instance = WordRecognizer("done_recognition_instance", nao_ip, nao_port)
-
     global name_recognition_instance
     name_recognition_instance = WordRecognizer("name_recognition_instance", nao_ip, nao_port)
-
     for i in range(len(names_of_employees)):
         done_recognition_instance.start_listening_for_words(done_vocab)
 
@@ -282,8 +280,6 @@ def look_for_faces_code():
         robot_speak_instance.say_words("Hello, why are you visiting the office?")
         name_talking_to = "Visitor"
 
-    
-
 
 def scan_environment_functionality():
     global scan_handler_instance
@@ -312,6 +308,7 @@ def scan_environment_functionality():
         MyBroker.shutdown()
         sys.exit(0)
 
+    time.sleep(1)
     scan_handler_instance.motionProxy.setAngles("HeadYaw", 0, .5)
     time.sleep(2)
 
@@ -349,6 +346,10 @@ def scan_environment_functionality():
         scan_handler_instance.motionProxy.setAngles("HeadYaw", right_landmark_location, .5)
     else:
         robot_speak_instance.say_words("I could not find the passes")
+
+    time.sleep(2)
+    scan_handler_instance.motionProxy.setAngles("HeadYaw", 0, .5)
+
 
 def point_to_location_code(location_angle, arm):
     global point_to_instance 
