@@ -126,13 +126,21 @@ def conversation_handler():
     ############################# DIALOGUE HERE ##############################
     robot_speak_instance.say_words("This is where I would start a dialogue")
     time.sleep(1)
-    
+
     if name_talking_to == "Visitor":
         guest_conversation()
     elif name_talking_to:
         employee_conversation()
     global next_state
     next_state = "idle"
+
+    time.sleep(5)
+    robot_speak_instance.say_words("Haven't heard from you for a while. Do you want to ask anything?")               # Prompt user after 5s of quietness
+
+    face_recognition = FaceRecognition("FaceRecognition", "192.168.1.53", 9559)  
+    face_recognition.start_looking_for_face()
+    if not face_recognition.face_detected:
+        robot_speak_instance.say_words("I can't detect a face. Could you please reposition your face in fornt of me?")     # Prompt user when lost face
 
 def employee_conversation():
     robot_speak_instance.say_words("I know you are an employee this is where I would talk to you")
