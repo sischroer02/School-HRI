@@ -9,6 +9,8 @@ class MotionHandler(ALModule):
         self.motionProxy = ALProxy("ALMotion", self.ip, self.port)
         self.postureProxy = ALProxy("ALRobotPosture", self.ip, self.port)
         self.memoryProxy = ALProxy("ALMemory", self.ip, self.port)
+        self.lifeProxy = ALProxy("ALAutonomousLife", self.ip, self.port)
+        self.movesProxy = ALProxy("ALAutonomousMoves", self.ip, self.port)
 
         print(" ------ MotionHandler __init__")
 
@@ -29,3 +31,6 @@ class MotionHandler(ALModule):
     def onMotionCompleted(self, name, value, subscriberIdentifier):
         self.motion_has_been_completed = [subscriberIdentifier, True]
         print(" -------- OnMotionCompleted")
+
+    # def guesture_to_package(self):
+        

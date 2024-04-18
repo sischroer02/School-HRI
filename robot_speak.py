@@ -10,6 +10,7 @@ class RobotSpeak(ALModule):
         self.ip = ip
         self.port = port
         self.speak = ALProxy("ALTextToSpeech", self.ip, self.port)
+        self.speak.setVolume(2.0)
 
     def say_words(self, words):
         print(" ------ say_words")

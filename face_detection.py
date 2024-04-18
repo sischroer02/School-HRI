@@ -10,6 +10,7 @@ class FaceRecognition(ALModule):
         self.port = port
         self.face_detection = ALProxy("ALFaceDetection", self.ip, self.port)
         self.memoryProxy = ALProxy("ALMemory", self.ip, self.port)
+        self.face_detection.setRecognitionConfidenceThreshold(0.5)
     
     def start_looking_for_face(self):
         self.face_recognized = False
